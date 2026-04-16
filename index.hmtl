@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>My Weather Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #0f172a;
+      color: #e2e8f0;
+    }
+
+    header {
+      padding: 15px;
+      text-align: center;
+      background: #1e293b;
+      font-size: 1.5em;
+      font-weight: bold;
+    }
+
+    .container {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 15px;
+      padding: 15px;
+    }
+
+    @media (min-width: 768px) {
+      .container {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    .card {
+      background: #1e293b;
+      padding: 15px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.3);
+    }
+
+    h2 {
+      margin-top: 0;
+      font-size: 1.2em;
+      border-bottom: 1px solid #334155;
+      padding-bottom: 5px;
+    }
+
+    .alert {
+      background: #7f1d1d;
+      padding: 10px;
+      margin-bottom: 10px;
+      border-radius: 6px;
+    }
+
+    .forecast-item {
+      margin-bottom: 10px;
+    }
+
+    img {
+      width: 100%;
+      border-radius: 8px;
+    }
+
+    .footer {
+      text-align: center;
+      font-size: 0.8em;
+      padding: 10px;
+      opacity: 0.6;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  🌦️ My Weather Dashboard
+</header>
+
+<div class="container">
+
+  <!-- Alerts -->
+  <div class="card">
+    <h2>⚠️ Alerts</h2>
+    <div id="alerts">Loading...</div>
+  </div>
+
+  <!-- Forecast -->
+  <div class="card">
+    <h2>🌤️ Forecast</h2>
+    <div id="forecast">Loading...</div>
+  </div>
+
+  <!-- Radar -->
+  <div class="card" style="grid-column: span 2;">
+    <h2>🖼️ Radar (Pittsburgh)</h2>
+    <img id="radar" src="https://radar.weather.gov/ridge/standard/KPBZ_loop.gif" alt="Radar Loop">
+  </div>
+
+</div>
+
+<div class="footer">
+  Data from National Weather Service
+</div>
+
+<script>
+  const lat = 40.43;
+  const lon = -79.78;
+
+  async function loadWeather() {
+    try {
+      // Get point data
+      const pointRes = await fetch(`https://api.weather.gov/points/${lat},${lon}`, {
+        headers: {
+          "User-Agent": "my-weather-dashboard (you@example.com)"
+        }
+      });
+      const pointData = await pointRes.json();
+
+      // Forecast
+      const forecastRes = await fetch(pointData.properties.forecast, {
+        headers: {
+          "User-Agent": "my-weather-dashboard (you@example.com)"
+        }
+      });
+      const forecastData = await forecastRes.json();
+
+      const periods = forecastData.properties.periods.slice(0, 5);
+
+      document.getElementById("forecast").innerHTML =
+        periods.map(p => `
+          <div class="forecast-item">
+            <strong>${p.name}</strong>: ${p.temperature}°${p.temperatureUnit}<br>
+            ${p.shortForecast}
+          </div>
+        `).join("");
+
+      // Alerts
+      const alertsRes = await fetch(`https://api.weather.gov/alerts/active?point=${lat},${lon}`, {
+        headers: {
+          "User-Agent": "my-weather-dashboard (you@example.com)"
+        }
+      });
+      const alertsData = await alertsRes.json();
+
+      if (alertsData.features.length === 0) {
+        document.getElementById("alerts").innerHTML = "No active alerts 🎉";
+      } else {
+        document.getElementById("alerts").innerHTML =
+          alertsData.features.map(a => `
+            <div class="alert">
+              <strong>${a.properties.event}</strong><br>
+              ${a.properties.headline}
+            </div>
+          `).join("");
+      }
+
+    } catch (err) {
+      console.error(err);
+      document.getElementById("forecast").innerHTML = "Error loading forecast";
+      document.getElementById("alerts").innerHTML = "Error loading alerts";
+    }
+  }
+
+  // Refresh radar every minute
+  setInterval(() => {
+    const radar = document.getElementById("radar");
+    radar.src = "https://radar.weather.gov/ridge/standard/KPBZ_loop.gif?rand=" + Math.random();
+  }, 60000);
+
+  loadWeather();
+  setInterval(loadWeather, 300000); // refresh every 5 minutes
+</script>
+
+</body>
+</html>
