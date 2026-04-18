@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>PBZ Weather Terminal</title>
 
-<!-- Leaflet (RADAR MAP ENGINE) -->
+<!-- LEAFLET -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
@@ -26,37 +26,14 @@ body {
   color: var(--text);
 }
 
-/* TICKER */
-.ticker {
-  position: fixed;
-  top: 0;
-  width: 100%;
-  background: #000;
-  border-bottom: 1px solid var(--border);
-  overflow: hidden;
-  z-index: 999;
-}
-
-.ticker span {
-  display:inline-block;
-  white-space:nowrap;
-  padding-left:100%;
-  animation:scroll 20s linear infinite;
-  font-size:12px;
-}
-
-@keyframes scroll {
-  0% { transform: translateX(0); }
-  100% { transform: translateX(-100%); }
-}
-
+/* HEADER */
 header {
-  margin-top:28px;
   padding:10px;
   text-align:center;
   border-bottom:1px solid var(--border);
 }
 
+/* LAYOUT */
 .container {
   padding:10px;
   display:grid;
@@ -75,258 +52,118 @@ h2 {
   border-bottom:1px solid var(--border);
 }
 
-/* WATCH / WARNING */
-#warningBox { border-color: var(--severe); }
-#watchBox { border-color: var(--warn); }
-
-#warningBox h2 { color: var(--severe); }
-#watchBox h2 { color: var(--warn); }
-
 /* CARDS */
 .card {
   border:1px solid var(--border);
   padding:8px;
   margin-bottom:8px;
   font-size:12px;
-  white-space: pre-wrap;
-  word-break: break-word;
+  white-space:pre-wrap;
 }
 
-.severe { border-color: var(--severe); }
-.warning { border-color: var(--warn); }
-
-/* LSR */
-.lsr-body {
-  display:none;
-  margin-top:8px;
-}
-.card.open .lsr-body {
-  display:block;
-}
-
-/* RADAR MAP */
+/* MAP */
 #radarMap {
-  height: 340px;
+  height: 360px;
   width: 100%;
   border: 1px solid var(--border);
 }
 
 /* MOBILE */
-@media (max-width:768px){
-  #radarMap {
-    height: 280px;
-  }
+@media(max-width:768px){
+  #radarMap { height: 300px; }
 }
 </style>
 </head>
 
 <body>
 
-<div class="ticker">
-  <span id="tickerText">Loading...</span>
-</div>
-
 <header>
-PBZ WEATHER TERMINAL — LIVE OPS CONSOLE
+PBZ WEATHER TERMINAL — LIVE RADAR STACK
 </header>
 
 <div class="container">
 
-<!-- WARNING BOX -->
-<div class="section" id="warningBox">
-<h2>WARNING BOX</h2>
-<div id="warnings"></div>
-</div>
-
-<!-- WATCH BOX -->
-<div class="section" id="watchBox">
-<h2>WATCH BOX</h2>
-<div id="watches"></div>
-</div>
-
-<!-- PRODUCTS -->
 <div class="section">
-<h2>PBZ PRODUCTS</h2>
-<div id="products"></div>
+  <h2>LIVE RADAR STACK</h2>
+  <div id="radarMap"></div>
 </div>
 
-<!-- LSR -->
-<div class="section">
-<h2>STORM REPORTS</h2>
-<div id="reports"></div>
-</div>
-
-const radar = L.tileLayer(
-  "https://mapservices.weather.noaa.gov/vector/rest/services/radar/radar_base_reflectivity/MapServer/tile/{z}/{y}/{x}",
-  {
-    opacity: 0.65,
-    attribution: "NOAA"
-  }
-).addTo(map);
 </div>
 
 <script>
 
-const COUNTIES = ["Allegheny","Westmoreland"];
-const REFRESH_MS = 90000;
-let tickerItems = [];
-
-/* -------------------------
-   COUNTY FILTER
-------------------------- */
-function countyMatch(f){
-  return COUNTIES.some(c =>
-    (f.properties.areaDesc || "").includes(c)
-  );
-}
-
-/* -------------------------
-   ALERTS
-------------------------- */
-async function loadAlerts(){
-  const res = await fetch("https://api.weather.gov/alerts/active?point=40.44,-79.99");
-  const data = await res.json();
-
-  const warn = document.getElementById("warnings");
-  const watch = document.getElementById("watches");
-
-  warn.innerHTML = "";
-  watch.innerHTML = "";
-  tickerItems = [];
-
-  data.features.forEach(f => {
-    if (!countyMatch(f)) return;
-
-    const p = f.properties;
-
-    const div = document.createElement("div");
-    div.className = "card";
-
-    div.textContent =
-`${p.event}
-${p.areaDesc}`;
-
-    if (p.event.includes("Warning")) {
-      div.classList.add("severe");
-      warn.appendChild(div);
-      tickerItems.push("WARNING: " + p.event);
-    } else {
-      div.classList.add("warning");
-      watch.appendChild(div);
-      tickerItems.push("WATCH: " + p.event);
-    }
-  });
-
-  updateTicker();
-}
-
-/* -------------------------
-   PRODUCTS
-------------------------- */
-async function loadProducts(){
-  const el = document.getElementById("products");
-  el.innerHTML = "";
-
-  const res = await fetch("https://api.weather.gov/products?wfo=PBZ&limit=8");
-  const data = await res.json();
-
-  data["@graph"]?.forEach(p => {
-    const div = document.createElement("div");
-    div.className = "card";
-    div.textContent = `${p.productCode}\n${p.issuanceTime}`;
-    el.appendChild(div);
-  });
-}
-
-/* -------------------------
-   LSR
-------------------------- */
-async function loadReports(){
-  const el = document.getElementById("reports");
-  el.innerHTML = "";
-
-  const list = await fetch("https://api.weather.gov/products/types/LSR/locations/PBZ");
-  const data = await list.json();
-
-  const items = data["@graph"]?.slice(0,5) || [];
-
-  for (const i of items) {
-    const res = await fetch(i["@id"]);
-    const d = await res.json();
-
-    const div = document.createElement("div");
-    div.className = "card";
-
-    div.innerHTML =
-`LSR REPORT
-${d.issuanceTime}
-
-<div class="lsr-body">${d.productText || ""}</div>`;
-
-    div.onclick = () => div.classList.toggle("open");
-
-    el.appendChild(div);
-  }
-}
-
-/* -------------------------
-   TICKER
-------------------------- */
-function updateTicker(){
-  document.getElementById("tickerText").textContent =
-    tickerItems.length ? tickerItems.join(" | ") : "No hazards";
-}
-
-/* -------------------------
-   RADAR MAP (REAL SYSTEM)
-------------------------- */
 let map;
 
+/* -------------------------
+   RADAR STACK INIT
+------------------------- */
 function initRadarMap(){
 
   map = L.map("radarMap", {
     zoomControl: true
   }).setView([40.44, -79.99], 7);
 
-  // Base dark map (minimal)
-  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-    opacity: 0.25
-  }).addTo(map);
-
-  // Radar layer (NOAA tile system via Iowa Mesonet)
-  const radar = L.tileLayer(
-    "https://mesonet.agron.iastate.edu/cache/tile.py/1.0.0/ridge::radar/{z}/{x}/{y}.png",
-    { opacity: 0.6 }
+  /* BASE MAP (dark feel) */
+  const base = L.tileLayer(
+    "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+    {
+      opacity: 0.2
+    }
   ).addTo(map);
 
-  // Lightning overlay (GLM-style proxy layer)
-  const lightning = L.tileLayer(
-    "https://mesonet.agron.iastate.edu/cache/tile.py/1.0.0/gis::radar/{z}/{x}/{y}.png",
-    { opacity: 0.35 }
+  /* =========================
+     RADAR STACK LAYERS
+  ========================= */
+
+  // 1. Reflectivity (PRIMARY RADAR)
+  const reflectivity = L.tileLayer(
+    "https://mapservices.weather.noaa.gov/vector/rest/services/radar/radar_base_reflectivity/MapServer/tile/{z}/{y}/{x}",
+    {
+      opacity: 0.65
+    }
+  ).addTo(map);
+
+  // 2. Velocity (storm motion)
+  const velocity = L.tileLayer(
+    "https://mapservices.weather.noaa.gov/vector/rest/services/radar/radar_base_velocity/MapServer/tile/{z}/{y}/{x}",
+    {
+      opacity: 0.65
+    }
   );
 
+  // 3. Composite (broader radar context)
+  const mosaic = L.tileLayer(
+    "https://mapservices.weather.noaa.gov/vector/rest/services/radar/radar_mosaic/MapServer/tile/{z}/{y}/{x}",
+    {
+      opacity: 0.6
+    }
+  );
+
+  // 4. Satellite (GOES GeoColor-style proxy)
+  const satellite = L.tileLayer(
+    "https://cdn.star.nesdis.noaa.gov/GOES16/ABI/SECTOR/cgl/GEOCOLOR/{z}/{x}/{y}.jpg",
+    {
+      opacity: 0.5
+    }
+  );
+
+  /* -------------------------
+     LAYER CONTROL (RADAR STACK)
+  ------------------------- */
   L.control.layers(
     {
-      "Radar": radar,
-      "Radar + Lightning": L.layerGroup([radar, lightning])
+      "Reflectivity (PBZ)": reflectivity,
+      "Velocity": velocity,
+      "Radar Mosaic": mosaic,
+      "Satellite": satellite
     },
     null,
     { collapsed: false }
   ).addTo(map);
 }
 
-/* -------------------------
-   INIT
-------------------------- */
-async function init(){
-  await loadAlerts();
-  await loadProducts();
-  await loadReports();
-  initRadarMap();
-}
-
-init();
-setInterval(init, REFRESH_MS);
+/* INIT */
+initRadarMap();
 
 </script>
 
