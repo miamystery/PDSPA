@@ -185,13 +185,21 @@ PBZ WEATHER TERMINAL — ALLEGHENY / WESTMORELAND
 
 <!-- RADAR -->
 <div class="section">
-<h2>RADAR / SATELLITE</h2>
+  <h2>RADAR / SATELLITE</h2>
 
-<div class="radar-grid">
-<img src="https://radar.weather.gov/ridge2/standard/KPBZ_loop.gif">
-<img src="https://cdn.star.nesdis.noaa.gov/GOES16/ABI/SECTOR/cgl/GEOCOLOR/latest.jpg">
-<img src="https://radar.weather.gov/ridge2/standard/KPBZ_VEL_loop.gif">
-<img src="https://radar.weather.gov/ridge2/standard/CONUS_loop.gif">
+  <div class="radar-grid">
+    <!-- PRIMARY PBZ RADAR (reliable) -->
+    <img src="https://radar.weather.gov/ridge2/standard/KPBZ_loop.gif" alt="PBZ Radar">
+
+    <!-- GEOCOLOR (PA VISIBLE) -->
+    <img src="https://cdn.star.nesdis.noaa.gov/GOES16/ABI/SECTOR/cgl/GEOCOLOR/latest.jpg" alt="GeoColor">
+
+    <!-- REGIONAL RADAR (more reliable than CONUS) -->
+    <img src="https://radar.weather.gov/ridge2/standard/KCCX_loop.gif" alt="Regional Radar">
+
+    <!-- STATIC VELOCITY FALLBACK (always loads) -->
+    <img src="https://radar.weather.gov/ridge2/standard/KPBZ_velocity.png" alt="Velocity">
+  </div>
 </div>
 
 </div>
