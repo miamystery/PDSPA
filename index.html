@@ -15,7 +15,6 @@
   --severe:#ff3b3b;
 }
 
-/* GLOBAL */
 body {
   margin:0;
   font-family: monospace;
@@ -33,21 +32,18 @@ body {
   overflow: hidden;
   z-index: 999;
 }
-
 .ticker span {
   display:inline-block;
   white-space:nowrap;
   padding-left:100%;
-  animation:scroll 22s linear infinite;
+  animation:scroll 20s linear infinite;
   font-size:12px;
 }
-
 @keyframes scroll {
   0% { transform: translateX(0); }
   100% { transform: translateX(-100%); }
 }
 
-/* HEADER */
 header {
   margin-top:28px;
   padding:10px;
@@ -55,26 +51,22 @@ header {
   border-bottom:1px solid var(--border);
 }
 
-/* LAYOUT */
 .container {
   padding:10px;
   display:grid;
   gap:10px;
 }
 
-/* SECTIONS */
 .section {
   border:1px solid var(--border);
   background: var(--panel);
   padding:10px;
-  border-radius:4px;
 }
 
 h2 {
   font-size:13px;
   margin:0 0 8px;
   border-bottom:1px solid var(--border);
-  padding-bottom:4px;
 }
 
 /* WATCH / WARNING */
@@ -92,263 +84,249 @@ h2 {
   font-size:12px;
   white-space: pre-wrap;
   word-break: break-word;
-  border-radius:4px;
   cursor:pointer;
 }
 
 .severe { border-color: var(--severe); }
 .warning { border-color: var(--warn); }
 
-/* EXPANDABLE LSR */
+/* LSR EXPAND */
 .lsr-body {
   display:none;
   margin-top:8px;
-  color:#9cffb3;
 }
-
 .card.open .lsr-body {
   display:block;
 }
 
-/* RADAR */
-.grid { display:grid; gap:10px; }
-img {
-  width:100%;
-  border:1px solid var(--border);
-  border-radius:4px;
+/* RADAR GRID */
+.radar-grid {
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap:8px;
 }
 
-@media (min-width:768px){
-  .grid-two { grid-template-columns:1fr 1fr; }
+.radar-grid img {
+  width:100%;
+  height:140px;
+  object-fit:cover;
+  border:1px solid var(--border);
+  cursor:pointer;
+}
+
+/* FULLSCREEN */
+#overlay {
+  position:fixed;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+  background:#000;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:2000;
+}
+#overlay img {
+  width:100%;
+  max-height:100%;
+  object-fit:contain;
+}
+#overlay.active {
+  display:flex;
+}
+#closeBtn {
+  position:absolute;
+  top:10px;
+  right:15px;
+  color:#66ff99;
+  border:1px solid #66ff99;
+  padding:4px 8px;
+  cursor:pointer;
 }
 </style>
 </head>
 
 <body>
 
-<!-- TICKER -->
 <div class="ticker">
-  <span id="tickerText">Loading PBZ feeds...</span>
+  <span id="tickerText">Loading...</span>
 </div>
 
 <header>
-PBZ WEATHER TERMINAL — ALLEGHENY / WESTMORELAND FILTER
+PBZ WEATHER TERMINAL — ALLEGHENY / WESTMORELAND
 </header>
 
 <div class="container">
 
-  <!-- WARNING BOX -->
-  <div class="section" id="warningBox">
-    <h2>WARNING BOX (IMMEDIATE ACTION)</h2>
-    <div id="warnings"></div>
-  </div>
-
-  <!-- WATCH BOX -->
-  <div class="section" id="watchBox">
-    <h2>WATCH BOX (CONDITIONS POSSIBLE)</h2>
-    <div id="watches"></div>
-  </div>
-
-  <!-- PRODUCTS -->
-  <div class="section">
-    <h2>PBZ PRODUCTS (WCNPBZ / FFAPBZ / ETC)</h2>
-    <div id="products"></div>
-  </div>
-
-  <!-- LSR -->
-  <div class="section">
-    <h2>SEVERE STORM REPORTS (LSRPBZ)</h2>
-    <div id="reports"></div>
-  </div>
-
-<div class="grid">
-  <!-- Primary PBZ reflectivity -->
-  <img src="https://radar.weather.gov/ridge/standard/KPBZ_loop.gif">
-
-  <!-- Regional mosaic (better storm context) -->
-  <img src="https://radar.weather.gov/ridge/standard/CONUS_loop.gif">
+<!-- WARNING -->
+<div class="section" id="warningBox">
+<h2>WARNING BOX</h2>
+<div id="warnings"></div>
 </div>
 
-<div class="grid grid-two" style="margin-top:10px;">
-  <!-- Velocity -->
-<img src="https://radar.weather.gov/ridge2/standard/KPBZ_loop.gif" alt="PBZ Reflectivity">
-<img src="https://radar.weather.gov/ridge2/standard/KPBZ_VEL_loop.gif" alt="PBZ Velocity">
-
-  <!-- GeoColor satellite (PA view) -->
-  <img src="https://cdn.star.nesdis.noaa.gov/GOES16/ABI/SECTOR/cgl/GEOCOLOR/latest.jpg">
+<!-- WATCH -->
+<div class="section" id="watchBox">
+<h2>WATCH BOX</h2>
+<div id="watches"></div>
 </div>
+
+<!-- PRODUCTS -->
+<div class="section">
+<h2>PBZ PRODUCTS</h2>
+<div id="products"></div>
+</div>
+
+<!-- LSR -->
+<div class="section">
+<h2>STORM REPORTS</h2>
+<div id="reports"></div>
+</div>
+
+<!-- RADAR -->
+<div class="section">
+<h2>RADAR / SATELLITE</h2>
+
+<div class="radar-grid">
+<img src="https://radar.weather.gov/ridge2/standard/KPBZ_loop.gif">
+<img src="https://cdn.star.nesdis.noaa.gov/GOES16/ABI/SECTOR/cgl/GEOCOLOR/latest.jpg">
+<img src="https://radar.weather.gov/ridge2/standard/KPBZ_VEL_loop.gif">
+<img src="https://radar.weather.gov/ridge2/standard/CONUS_loop.gif">
+</div>
+
+</div>
+
+</div>
+
+<!-- FULLSCREEN -->
+<div id="overlay">
+<div id="closeBtn">X</div>
+<img id="overlayImg">
 </div>
 
 <script>
 
-const COUNTIES = ["Allegheny", "Westmoreland"];
+const COUNTIES = ["Allegheny","Westmoreland"];
 const REFRESH_MS = 90000;
-
 let tickerItems = [];
 
-/* -------------------------
-   COUNTY FILTER
-------------------------- */
-function countyMatch(feature) {
-  const areas = feature.properties.areaDesc || "";
-  return COUNTIES.some(c => areas.includes(c));
+function countyMatch(f){
+  return COUNTIES.some(c=> (f.properties.areaDesc||"").includes(c));
 }
 
-/* -------------------------
-   ALERTS
-------------------------- */
-async function loadAlerts() {
-  const url = "https://api.weather.gov/alerts/active?point=40.4406,-79.9959";
-  const res = await fetch(url);
+/* ALERTS */
+async function loadAlerts(){
+  const res = await fetch("https://api.weather.gov/alerts/active?point=40.44,-79.99");
   const data = await res.json();
 
-  const warningsBox = document.getElementById("warnings");
-  const watchesBox = document.getElementById("watches");
+  const warn = document.getElementById("warnings");
+  const watch = document.getElementById("watches");
 
-  warningsBox.innerHTML = "";
-  watchesBox.innerHTML = "";
-  tickerItems = [];
+  warn.innerHTML="";
+  watch.innerHTML="";
+  tickerItems=[];
 
-  data.features.forEach(f => {
-    if (!countyMatch(f)) return;
+  data.features.forEach(f=>{
+    if(!countyMatch(f)) return;
+    const p=f.properties;
 
-    const p = f.properties;
-    const event = p.event || "";
+    const div=document.createElement("div");
+    div.className="card";
+    div.textContent=`${p.event}\n${p.areaDesc}`;
 
-    const card = document.createElement("div");
-    card.className = "card";
-
-    card.textContent =
-`${event}
-Areas: ${p.areaDesc}
-Issued: ${p.sent}
-Expires: ${p.ends || "N/A"}`;
-
-    const isWarning =
-      event.includes("Warning") &&
-      (event.includes("Tornado") ||
-       event.includes("Severe") ||
-       event.includes("Flash Flood"));
-
-    const isWatch = event.includes("Watch");
-
-    if (isWarning) {
-      card.classList.add("severe");
-      warningsBox.appendChild(card);
-      tickerItems.push("WARNING: " + event);
+    if(p.event.includes("Warning")){
+      div.classList.add("severe");
+      warn.appendChild(div);
+      tickerItems.push("WARNING: "+p.event);
     } else {
-      if (isWatch) card.classList.add("warning");
-      watchesBox.appendChild(card);
-      tickerItems.push("WATCH: " + event);
+      watch.appendChild(div);
+      tickerItems.push("WATCH: "+p.event);
     }
   });
 
   updateTicker();
 }
 
-/* -------------------------
-   PRODUCTS
-------------------------- */
-async function loadProducts() {
-  const container = document.getElementById("products");
-  container.innerHTML = "";
+/* PRODUCTS */
+async function loadProducts(){
+  const el=document.getElementById("products");
+  el.innerHTML="";
 
-  const res = await fetch("https://api.weather.gov/products?wfo=PBZ&limit=10");
-  const data = await res.json();
+  const res=await fetch("https://api.weather.gov/products?wfo=PBZ&limit=8");
+  const data=await res.json();
 
-  data["@graph"]?.forEach(p => {
-    const card = document.createElement("div");
-    card.className = "card";
+  data["@graph"]?.forEach(p=>{
+    const div=document.createElement("div");
+    div.className="card";
+    div.textContent=`${p.productCode}\n${p.issuanceTime}`;
+    el.appendChild(div);
+  });
+}
 
-    const code = p.productCode || "PBZ PRODUCT";
+/* LSR */
+async function loadReports(){
+  const el=document.getElementById("reports");
+  el.innerHTML="";
 
-    if (code.includes("TOR") || code.includes("SVR")) card.classList.add("severe");
-    if (code.includes("FF") || code.includes("FL")) card.classList.add("warning");
+  const list=await fetch("https://api.weather.gov/products/types/LSR/locations/PBZ");
+  const data=await list.json();
 
-    card.textContent =
-`${code}
-Issued: ${p.issuanceTime || "N/A"}
+  const items=data["@graph"]?.slice(0,5)||[];
 
-${(p.productText || "").slice(0, 900)}`;
+  for(const i of items){
+    const res=await fetch(i["@id"]);
+    const d=await res.json();
 
-    container.appendChild(card);
-    tickerItems.push(code);
+    const div=document.createElement("div");
+    div.className="card";
+
+    div.innerHTML=`LSR\n${d.issuanceTime}
+<div class="lsr-body">${d.productText}</div>`;
+
+    div.onclick=()=>div.classList.toggle("open");
+
+    el.appendChild(div);
+  }
+}
+
+/* TICKER */
+function updateTicker(){
+  document.getElementById("tickerText").textContent=
+    tickerItems.join(" | ") || "No hazards";
+}
+
+/* FULLSCREEN RADAR */
+function enableFullscreen(){
+  const imgs=document.querySelectorAll(".radar-grid img");
+  const overlay=document.getElementById("overlay");
+  const overlayImg=document.getElementById("overlayImg");
+
+  imgs.forEach(img=>{
+    img.onclick=()=>{
+      overlayImg.src=img.src;
+      overlay.classList.add("active");
+    };
   });
 
-  updateTicker();
-}
+  document.getElementById("closeBtn").onclick=()=>{
+    overlay.classList.remove("active");
+  };
 
-/* -------------------------
-   LSR (FIXED + EXPANDABLE)
-------------------------- */
-async function loadReports() {
-  const container = document.getElementById("reports");
-  container.innerHTML = "";
-
-  const listRes = await fetch("https://api.weather.gov/products/types/LSR/locations/PBZ");
-  const listData = await listRes.json();
-
-  const items = listData["@graph"]?.slice(0, 6) || [];
-
-  for (const item of items) {
-    try {
-      const res = await fetch(item["@id"]);
-      const data = await res.json();
-
-      const card = document.createElement("div");
-      card.className = "card";
-
-      const text = data.productText || "No report text";
-
-      const isTornado = text.includes("TORNADO") || text.includes("FUNNEL");
-
-      if (isTornado) {
-        card.classList.add("severe");
-        tickerItems.push("LSR TORNADO REPORT");
-      }
-
-      const preview = text.slice(0, 180);
-
-      card.innerHTML = `
-LSR REPORT
-Issued: ${data.issuanceTime || "N/A"}
-
-<div class="lsr-body">
-${text}
-</div>
-`;
-
-      card.onclick = () => {
-        card.classList.toggle("open");
-      };
-
-      container.appendChild(card);
-    } catch (e) {}
-  }
-
-  updateTicker();
-}
-
-/* -------------------------
-   TICKER
-------------------------- */
-function updateTicker() {
-  document.getElementById("tickerText").textContent =
-    tickerItems.length ? tickerItems.join(" | ") : "No active hazards";
-}
-
-/* -------------------------
-   MASTER REFRESH
-------------------------- */
-async function refreshAll() {
-  await loadAlerts();
-  await loadProducts();
-  await loadReports();
+  overlay.onclick=(e)=>{
+    if(e.target===overlay) overlay.classList.remove("active");
+  };
 }
 
 /* INIT */
-refreshAll();
-setInterval(refreshAll, REFRESH_MS);
+async function init(){
+  await loadAlerts();
+  await loadProducts();
+  await loadReports();
+  enableFullscreen();
+}
+
+init();
+setInterval(init, REFRESH_MS);
 
 </script>
 
