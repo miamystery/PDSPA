@@ -156,12 +156,13 @@ PBZ WEATHER TERMINAL — LIVE OPS CONSOLE
 <div id="reports"></div>
 </div>
 
-<!-- RADAR MAP -->
-<div class="section">
-<h2>LIVE RADAR MAP</h2>
-<div id="radarMap"></div>
-</div>
-
+const radar = L.tileLayer(
+  "https://mapservices.weather.noaa.gov/vector/rest/services/radar/radar_base_reflectivity/MapServer/tile/{z}/{y}/{x}",
+  {
+    opacity: 0.65,
+    attribution: "NOAA"
+  }
+).addTo(map);
 </div>
 
 <script>
